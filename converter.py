@@ -101,18 +101,20 @@ def findAndConvertPages(session, directory, types, ignore_names):
 		pagetype, pagename = page.split('.',2)
 		# Convert page if it is not on the ignore list or a deleted page
 		if (pagetype in types) and (pagename not in ignore_names) and (len(page.split(',')) < 2):
-			if count >= offset:
+			if count >= offset and not os.path.isfile('converted/'+page):
 				f = open('converted/'+page, 'w')
 				pagecontent = pageConverter(session, directory+page)
 				f.write(json.dumps(pagecontent, sort_keys=True, indent=4, separators=(',', ': ')))
 				f.close
+			elif os.path.isfile('converted/'+page):
+				print(page+" is already parsed, if it is not finished, remove this file.")
 		count += 1
 
 def main(filename, username, password):
 	s = requests.Session()
 	s.post("https://dtek.se/wiki/Main/LoginPage?action=login", data={"username" : username,"password" : password})
 #	pageConverter(s, "/home/swij/Kod/wiki/wiki.d/Profiles.Rövgoat")
-	findAndConvertPages(s, "/home/swij/Kod/wiki/wiki.d/", ["Main", "Profiles"], ["RecentChanges", "GroupAttributes", "Profiles"])
+	findAndConvertPages(s, "/home/swij/Kod/wiki/wiki.d/", ["Main", "Profiles"], ["RecentChanges", "GroupAttributes", "Profiles", "Rövgoat"])
 	#print(findAndConvertPages(s, "/home/swij/Kod/wiki/converted/", ["Main","Profiles"]))
 	#print (json.dumps(pageConverter(s, filename)))
 
