@@ -38,16 +38,25 @@ bootstrap (inDir:outDir:patterns) =
         rev <- ioR
         if null rev
           then putStrLn $ "No revisions for " ++ f ++ "."
-          else commitRevs rev (outDir </> (takeFileName f) ++ ".page")
+          else commitRevs rev f
         commitRevsWithNames rs fs
 
       replaceChar :: Char -> Char -> String -> String
       replaceChar m r str = map (\c -> if c == m then r else c) str
 
+      getOutFilePath :: FilePath -> FilePath
+      getOutFilePath = prependOutDir . appendPage . (replaceChar '.' '/') . takeFileName
+
+      appendPage :: FilePath -> FilePath
+      appendPage = flip (++) ".page"
+
+      prependOutDir :: FilePath -> FilePath
+      prependOutDir = (outDir </>)
+
   in do
     files <- findAllMatchingSubstrings patterns inDir
     revs <- getRevs files
-    commitRevsWithNames revs (map (replaceChar '.' '/') files)
+    commitRevsWithNames revs (map getOutFilePath files)
 
 bootstrap _ = printHelp
 
