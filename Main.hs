@@ -26,7 +26,6 @@ main = do
   args <- getArgs
   bootstrap args
 
-
 bootstrap :: [String] -> IO ()
 bootstrap (inDir:outDir:patterns) =
   let getRevs :: [FilePath] -> IO [IO [Revision]]
@@ -37,7 +36,9 @@ bootstrap (inDir:outDir:patterns) =
       commitRevsWithNames (_:_) [] = error "commitRevsWithNames: Not enough filenames to the revisions."
       commitRevsWithNames (ioR:rs) (f:fs) = do
         rev <- ioR
-        commitRevs rev (outDir </> (takeFileName f) ++ ".page")
+        if null rev
+          then putStrLn $ "No revisions for " ++ f ++ "."
+          else commitRevs rev (outDir </> (takeFileName f) ++ ".page")
         commitRevsWithNames rs fs
 
       replaceChar :: Char -> Char -> String -> String
@@ -47,6 +48,7 @@ bootstrap (inDir:outDir:patterns) =
     files <- findAllMatchingSubstrings patterns inDir
     revs <- getRevs files
     commitRevsWithNames revs (map (replaceChar '.' '/') files)
+
 bootstrap _ = printHelp
 
 printHelp :: IO ()
