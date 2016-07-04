@@ -77,12 +77,12 @@ def pageConverter(session, file):
         n = 0
         for diff_number, author, comment in diffs:
             content = findDiffMarkup(session, name, diff_number)
-            diffs2[n] = {'diff':diff_number, 'author':author, 'comment':comment, 'content':content}
+            diffs2[n] = {'diff':int(diff_number), 'author':author, 'comment':comment, 'content':content}
             n+=1
     elif len(diffs) == 1: # If only one version of the page exists get current source instead
         content = findCurrentMarkup(session, name)
         diff_number, author, comment = diffs[0]
-        diffs2[0] = {'diff':diff_number, 'author':author, 'comment':comment, 'content':content}
+        diffs2[0] = {'diff':int(diff_number), 'author':author, 'comment':comment, 'content':content}
     else:
         print("Empty", file)
     return diffs2
