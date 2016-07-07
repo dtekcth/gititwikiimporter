@@ -17,7 +17,7 @@ module Main where
 import System.Environment ( getArgs, getProgName )
 import System.FilePath (FilePath, (</>), takeFileName)
 import System.FilePath.Find
-import Data.List ( isInfixOf, splitAt )
+import Data.List ( isInfixOf )
 
 import Data.WikiPageConverter
 
@@ -42,10 +42,10 @@ bootstrap (inDir:outDir:patterns) =
         commitRevsWithNames rs fs
 
       replaceChar :: Char -> Char -> String -> String
-      replaceChar m r str = map (\c -> if c == m then r else c) str
+      replaceChar m r = map (\c -> if c == m then r else c)
 
       getOutFilePath :: FilePath -> FilePath
-      getOutFilePath = prependOutDir . appendPage . (replaceChar '.' '/') . takeFileName
+      getOutFilePath = prependOutDir . appendPage . replaceChar '.' '/' . takeFileName
 
       appendPage :: FilePath -> FilePath
       appendPage = flip (++) ".page"
@@ -87,12 +87,12 @@ findAllMatchingSubstrings ss path = findAllMatching pred path
 -- | Finds all files in directories and subdirectories that are not ignored
 --   and that satisfies the predicate
 findAllMatching :: FindClause Bool -> FilePath -> IO [FilePath]
-findAllMatching pred path = find always ((filePath `opNoneOf` ignoredDirs) &&? pred) path
+findAllMatching pred = find always ((filePath `opNoneOf` ignoredDirs) &&? pred)
   where opNoneOf = liftOp containsNoneOf
 
 -- | Finds all files in directories and subdirectories that are not ignored
 findAllFilesInDir :: FilePath -> IO [FilePath]
-findAllFilesInDir path = findAllMatching always path
+findAllFilesInDir = findAllMatching always
 
 -- | Ignored directories, content in these directories will not be found by
 --   findAllFilesInDir
@@ -102,5 +102,5 @@ ignoredDirs = ["stack-work", "git"]
 -- | Predicate that checks that a bunch of strings / file paths are not infixes
 --   of the file path to check.
 containsNoneOf :: FilePath -> [FilePath] -> Bool
-containsNoneOf f ignores = foldl (\b ig -> b && f `notContains` ig) True ignores
-  where notContains = (\f infx  -> not (isInfixOf infx f))
+containsNoneOf f = foldl (\b ig -> b && f `notContains` ig) True
+  where notContains f' infx = not (infx `isInfixOf` f')

@@ -64,7 +64,6 @@ executable gititwikiimporter
                      , filemanip >= 0.3.6.3
                      , filepath >=1.4 && <1.5
                      , process >=1.4 && <1.5
-                     , time >=1.6 && <1.7
                      , wikipageconverter
 
   -- Directories containing source files.
