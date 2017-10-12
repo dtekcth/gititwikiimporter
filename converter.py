@@ -7,11 +7,13 @@ import time
 
 from lxml import html, etree
 
+baseUrl = "https://demeter.dtek.se/wiki/"
+
 # Returns the pmwiki markup of a specific version of a page
 def findDiffMarkup(session, page, diff):
 	print(page, diff)
 	pageWithSlash = page.replace(".", "/")
-	response = session.get("http://dtek.se/wiki/"+pageWithSlash+"?action=edit&restore=diff:"+diff+":"+diff+"&preview=y")
+	response = session.get(baseUrl + pageWithSlash + "?action=edit&restore=diff:"+diff+":"+diff+"&preview=y")
 
 	tree = html.fromstring(response.content)
 	basetime = tree.xpath('//input[@name="basetime"]')
@@ -36,7 +38,7 @@ def findDiffMarkup(session, page, diff):
 
 	encoded = urllib.parse.urlencode(data, encoding='ISO-8859-1')
 
-	out = session.post("http://dtek.se/wiki/Profiles/"+page+"?action=edit", data, session.headers)
+	out = session.post(baseUrl + page + "?action=edit", data, session.headers)
 
 	outTree = html.fromstring(out.text)
 	outList = outTree.xpath('//div[@id="wikitext"]')[0].getchildren()[5:-2]
@@ -48,7 +50,7 @@ def findDiffMarkup(session, page, diff):
 # Returns current verison of a page
 def findCurrentMarkup(session, page):
     page = page.replace(".", "/")
-    response = session.get("http://dtek.se/wiki/"+page+"?action=source")
+    response = session.get(baseUrl + page + "?action=source")
     return response.text
 
 # Returns a touple with the pagename and a dictinoray containing all versions of
@@ -112,7 +114,7 @@ def findAndConvertPages(session, directory, types, ignore_names):
 
 def main(filename, username, password):
 	s = requests.Session()
-	s.post("https://dtek.se/wiki/Main/LoginPage?action=login", data={"username" : username,"password" : password})
+	s.post(baseUrl + "Main/LoginPage?action=login", data={"username" : username,"password" : password})
 #	pageConverter(s, "/home/swij/Kod/wiki/wiki.d/Profiles.Rövgoat")
 	findAndConvertPages(s, "/home/swij/Kod/wiki/wiki.d/", ["Main", "Profiles"], ["RecentChanges", "GroupAttributes", "Profiles", "Rövgoat"])
 	#print(findAndConvertPages(s, "/home/swij/Kod/wiki/converted/", ["Main","Profiles"]))
