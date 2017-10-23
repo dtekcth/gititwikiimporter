@@ -74,25 +74,21 @@ def find_diff_markup(session: Session, page: FilePath, diff: str) -> Optional[st
     elements = LH.fromstring(response.content).xpath('//div[@id="wikitext"]')[0].getchildren()
     return "\n".join(str(etree.tostring(el, encoding='unicode', method='html', pretty_print=True)) for el in elements)
 
-def find_revisions_meta(file: FilePath) -> Tuple[str, List[Revision]]:
-    """Finds the metadata about revisions for a page"""
+def find_revisions(session: Session, file: FilePath) -> List[Revision]:
+    """Return the revisions for a page"""
+
+    # Finds the metadata about revisions for a page
+    revisions = []
     with open(file, 'r') as f:
-        fileText = f.read()
-        match = re.search('(?:name=)(.*)', fileText)
+        content = f.read()
+        match = re.search('(?:name=)(.*)', content)
 
         name = match.group(1)
         regex = re.compile('author:(?P<diff>\d{10})=(?P<author>[\w\/]*)\s(?:csum:\d{10}=(?P<comment>.*))?', re.MULTILINE)
-        revisions = []
 
-        for matches in re.finditer(regex, fileText):
+        for matches in re.finditer(regex, content):
             revisions.append(Revision(int(matches.group('diff')), matches.group('author'),
                                       matches.group('comment'), None))
-
-        return name, revisions
-
-def find_revisions(session: Session, file: FilePath) -> List[Revision]:
-    """Return the revisions for a page"""
-    name, revisions = find_revisions_meta(file)
 
     return list(set_content(r, find_diff_markup(session, name, str(r.diff))) for r in revisions)
 
