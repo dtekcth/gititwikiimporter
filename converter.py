@@ -2,7 +2,7 @@
 #! nix-shell -i python3 -p python3 python36Packages.requests python36Packages.lxml
 #
 # To run an interactive shell:
-#  $ nix-shell -p python36 python36Packages.lxml python36Packages.requests --run "python3"
+#  $ nix-shell -p python36 python36Packages.lxml python36Packages.requests --run "python3 -i converter.py"
 
 import os
 import re
