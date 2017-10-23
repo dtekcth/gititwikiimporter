@@ -69,10 +69,8 @@ def find_diff_markup(session: Session, page: FilePath, diff: str) -> Optional[st
     }
 
     response = session.post(baseUrl + page + "?action=edit", data, session.headers)
-    return extract_html(response)
 
-def extract_html(response: Response) -> str:
-    """Extracts the html inside the 'wikitext'-div"""
+    # Extracts the html inside the 'wikitext'-div
     elements = LH.fromstring(response.content).xpath('//div[@id="wikitext"]')[0].getchildren()
     return "\n".join(str(etree.tostring(el, encoding='unicode', method='html', pretty_print=True)) for el in elements)
 
