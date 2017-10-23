@@ -126,16 +126,13 @@ def findAndConvertPages(session: Session, directory: FilePath, namespaces: List[
         """Simple predicate for removing unwanted pages"""
         parts = page.split(".", 1)
         return ("," not in page) and (parts[0] in namespaces) and (parts[1] not in ignored_names)
-
-
-    pages = (page.split(".", 1) for page in sorted(os.listdir(directory)[offset:]) if page_predicate(page))
-
-    for (page_ns, page_name) in pages:
+   
+    for page in filter(page_predicate, sorted(os.listdir(directory)[offset:])):
+        (page_ns, page_name) = page.split(".", 1)
         if not os.path.isfile(f"converted/{page_ns}/{page_name}"):
             with open(f'converted/{page_ns}/{page_name}', 'w') as f:
-                f.write(json.dumps(findRevisions(session, directory+page_ns+"."+page_name),
+                f.write(json.dumps(findRevisions(session, '{}{}.{}'.format(directory, page_ns, page_name)),
                                    sort_keys=True, indent=4, separators=(',', ': ')))
-
         # if the file already exists we assume it has been converted already
         else:
             print(f"converted/{page_ns}/{page_name} is already parsed, if it is not finished, remove this file.")
