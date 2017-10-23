@@ -116,13 +116,11 @@ def find_and_convert_pages(session: Session, directory: FilePath, namespaces: Li
             if not os.path.exists(f"converted/{ns}"):
                 os.mkdir(f"converted/{ns}")
 
-    def page_predicate(page: str) -> bool:
-        """Simple predicate for removing unwanted pages"""
-        parts = page.split(".", 1)
-        return ("," not in page) and (parts[0] in namespaces) and (parts[1] not in ignored_names)
-
-    for page in filter(page_predicate, sorted(os.listdir(directory)[offset:])):
+    for page in sorted(os.listdir(directory)[offset:]):
         (page_ns, page_name) = page.split(".", 1)
+        if all((',' not in page, page_ns in namespaces,
+                page_name not in ignored_names)):
+            continue
         if not os.path.isfile(f"converted/{page_ns}/{page_name}"):
             with open(f'converted/{page_ns}/{page_name}', 'w') as f:
                 f.write(json.dumps(find_revisions(session, f'{directory}{page_ns}.{page_name}'),
