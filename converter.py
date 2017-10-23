@@ -142,4 +142,5 @@ def main(filename: str, username: str, password: str) -> None:
         find_and_convert_pages(s, "/home/jassob/Projects/pm-wiki-exporter/wiki.d/",
                             ["Main", "Profiles"], ["RecentChanges", "GroupAttributes", "Profiles"])
 
-main("", "username", "password")
+if __name__ == '__main__':
+    main("", "username", "password")
