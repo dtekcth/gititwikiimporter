@@ -38,7 +38,7 @@ Session = requests.sessions.Session
 Response = requests.Response
 FilePath = str
 
-def findDiffMarkup(session: Session, page: FilePath, diff: str) -> Optional[str]:
+def find_diff_markup(session: Session, page: FilePath, diff: str) -> Optional[str]:
     """
     Extracts the HTML of the revision by requesting the PmWiki instance
     to render a preview of said revision
@@ -69,14 +69,14 @@ def findDiffMarkup(session: Session, page: FilePath, diff: str) -> Optional[str]
     }
 
     response = session.post(baseUrl + page + "?action=edit", data, session.headers)
-    return extractHtml(response)
+    return extract_html(response)
 
-def extractHtml(response: Response) -> str:
+def extract_html(response: Response) -> str:
     """Extracts the html inside the 'wikitext'-div"""
     elements = LH.fromstring(response.content).xpath('//div[@id="wikitext"]')[0].getchildren()
     return "\n".join(str(etree.tostring(el, encoding='unicode', method='html', pretty_print=True)) for el in elements)
 
-def findRevisionsMeta(file: FilePath) -> Tuple[str, List[Revision]]:
+def find_revisions_meta(file: FilePath) -> Tuple[str, List[Revision]]:
     """Finds the metadata about revisions for a page"""
     with open(file, 'r') as f:
         fileText = f.read()
@@ -92,13 +92,13 @@ def findRevisionsMeta(file: FilePath) -> Tuple[str, List[Revision]]:
 
         return name, revisions
 
-def findRevisions(session: Session, file: FilePath) -> List[Revision]:
+def find_revisions(session: Session, file: FilePath) -> List[Revision]:
     """Return the revisions for a page"""
-    name, revisions = findRevisionsMeta(file)
+    name, revisions = find_revisions_meta(file)
 
-    return list(set_content(r, findDiffMarkup(session, name, str(r.diff))) for r in revisions)
+    return list(set_content(r, find_diff_markup(session, name, str(r.diff))) for r in revisions)
 
-def findAndConvertPages(session: Session, directory: FilePath, namespaces: List[str],
+def find_and_convert_pages(session: Session, directory: FilePath, namespaces: List[str],
                         ignored_names: List[str], offset = 0) -> None:
     """
     Creates converted copies of PmWiki page-files in converted/ directory.
@@ -126,12 +126,12 @@ def findAndConvertPages(session: Session, directory: FilePath, namespaces: List[
         """Simple predicate for removing unwanted pages"""
         parts = page.split(".", 1)
         return ("," not in page) and (parts[0] in namespaces) and (parts[1] not in ignored_names)
-   
+
     for page in filter(page_predicate, sorted(os.listdir(directory)[offset:])):
         (page_ns, page_name) = page.split(".", 1)
         if not os.path.isfile(f"converted/{page_ns}/{page_name}"):
             with open(f'converted/{page_ns}/{page_name}', 'w') as f:
-                f.write(json.dumps(findRevisions(session, f'{directory}{page_ns}.{page_name}'),
+                f.write(json.dumps(find_revisions(session, f'{directory}{page_ns}.{page_name}'),
                                    sort_keys=True, indent=4, separators=(',', ': ')))
         # if the file already exists we assume it has been converted already
         else:
@@ -141,7 +141,7 @@ def main(filename: str, username: str, password: str) -> None:
     with requests.Session() as s:
         s.post(baseUrl + "Main/LoginPage?action=login" ,
                data={"username": username,"password": password})
-        findAndConvertPages(s, "/home/jassob/Projects/pm-wiki-exporter/wiki.d/",
+        find_and_convert_pages(s, "/home/jassob/Projects/pm-wiki-exporter/wiki.d/",
                             ["Main", "Profiles"], ["RecentChanges", "GroupAttributes", "Profiles"])
 
 main("", "username", "password")
