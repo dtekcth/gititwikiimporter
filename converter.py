@@ -79,7 +79,6 @@ def find_revisions(session: Session, file: FilePath) -> List[Revision]:
 
     # Finds the metadata about revisions for a page
     with open(file, 'r') as f:
-        result = []
         content = f.read()
         match = re.search('(?:name=)(.*)', content)
 
@@ -87,13 +86,11 @@ def find_revisions(session: Session, file: FilePath) -> List[Revision]:
         regex = re.compile('author:(?P<diff>\d{10})=(?P<author>[\w\/]*)\s(?:csum:\d{10}=(?P<comment>.*))?', re.MULTILINE)
 
         for ms in re.finditer(regex, content):
-            result.append(
-                Revision(int(ms.group('diff')),
+            yield Revision(int(ms.group('diff')),
                          ms.group('author'),
                          ms.group('comment'),
                          find_diff_markup(session, name, ms.group('diff'))
-            ))
-        return result
+            )
 
 def find_and_convert_pages(session: Session, directory: FilePath, namespaces: List[str],
                         ignored_names: List[str], offset = 0) -> None:
@@ -126,7 +123,7 @@ def find_and_convert_pages(session: Session, directory: FilePath, namespaces: Li
             continue
         if not os.path.isfile(f"converted/{page_ns}/{page_name}"):
             with open(f'converted/{page_ns}/{page_name}', 'w') as f:
-                f.write(json.dumps(find_revisions(session, f'{directory}{page_ns}.{page_name}'),
+                f.write(json.dumps(list(find_revisions(session, f'{directory}{page_ns}.{page_name}')),
                                    sort_keys=True, indent=4, separators=(',', ': ')))
         # if the file already exists we assume it has been converted already
         else:
