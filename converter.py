@@ -117,24 +117,30 @@ def find_and_convert_pages(session: Session, directory: FilePath, namespaces: Li
                 os.mkdir(f"converted/{ns}")
 
     for page in sorted(os.listdir(directory)[offset:]):
-        (page_ns, page_name) = page.split(".", 1)
-        if all((',' not in page, page_ns in namespaces,
-                page_name not in ignored_names)):
+        try:
+            (page_ns, page_name) = page.split(".", 1)
+
+            if (page_ns not in namespaces or page_name in ignored_names):
+                continue
+
+            if not os.path.isfile(f"converted/{page_ns}/{page_name}"):
+                with open(f'converted/{page_ns}/{page_name}', 'w') as f:
+                    f.write(json.dumps(list(find_revisions(session, f'{directory}{page_ns}.{page_name}')),
+                                       sort_keys=True, indent=4, separators=(',', ': ')))
+                    # if the file already exists we assume it has been converted already
+            else:
+                print(f"converted/{page_ns}/{page_name} is already parsed, if it is not finished, remove this file.")
+
+        except ValueError:
+            # We've had a name that isn't in the form "page_ns"."page_name"
             continue
-        if not os.path.isfile(f"converted/{page_ns}/{page_name}"):
-            with open(f'converted/{page_ns}/{page_name}', 'w') as f:
-                f.write(json.dumps(list(find_revisions(session, f'{directory}{page_ns}.{page_name}')),
-                                   sort_keys=True, indent=4, separators=(',', ': ')))
-        # if the file already exists we assume it has been converted already
-        else:
-            print(f"converted/{page_ns}/{page_name} is already parsed, if it is not finished, remove this file.")
 
 def main(filename: str, username: str, password: str) -> None:
     with requests.Session() as s:
         s.post(baseUrl + "Main/LoginPage?action=login" ,
                data={"username": username,"password": password})
-        find_and_convert_pages(s, "/home/jassob/Projects/pm-wiki-exporter/wiki.d/",
-                            ["Main", "Profiles"], ["RecentChanges", "GroupAttributes", "Profiles"])
+        find_and_convert_pages(s, "wiki.d/", ["Main", "Profiles"],
+                               ["RecentChanges", "GroupAttributes", "Profiles"])
 
 if __name__ == '__main__':
     main("", "username", "password")
