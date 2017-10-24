@@ -70,8 +70,9 @@ def find_diff_markup(session: Session, page: FilePath, diff: str) -> Optional[st
 
     response = session.post(baseUrl + page + "?action=edit", data, session.headers)
 
-    # Extracts the html inside the 'wikitext'-div
-    elements = LH.fromstring(response.content).xpath('//div[@id="wikitext"]')[0].getchildren()
+    # Extracts the html inside the 'wikitext'-div. The slice [5:-2]
+    # drops formatting help and other notices.
+    elements = LH.fromstring(response.content).xpath('//div[@id="wikitext"]')[0].getchildren()[5:-2]
     return "\n".join(str(etree.tostring(el, encoding='unicode', method='html', pretty_print=True)) for el in elements)
 
 def find_revisions(session: Session, file: FilePath) -> Generator[Revision, None, None]:
