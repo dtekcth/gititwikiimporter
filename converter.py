@@ -78,19 +78,22 @@ def find_revisions(session: Session, file: FilePath) -> List[Revision]:
     """Return the revisions for a page"""
 
     # Finds the metadata about revisions for a page
-    revisions = []
     with open(file, 'r') as f:
+        result = []
         content = f.read()
         match = re.search('(?:name=)(.*)', content)
 
         name = match.group(1)
         regex = re.compile('author:(?P<diff>\d{10})=(?P<author>[\w\/]*)\s(?:csum:\d{10}=(?P<comment>.*))?', re.MULTILINE)
 
-        for matches in re.finditer(regex, content):
-            revisions.append(Revision(int(matches.group('diff')), matches.group('author'),
-                                      matches.group('comment'), None))
-
-    return list(set_content(r, find_diff_markup(session, name, str(r.diff))) for r in revisions)
+        for ms in re.finditer(regex, content):
+            result.append(
+                Revision(int(ms.group('diff')),
+                         ms.group('author'),
+                         ms.group('comment'),
+                         find_diff_markup(session, name, ms.group('diff'))
+            ))
+        return result
 
 def find_and_convert_pages(session: Session, directory: FilePath, namespaces: List[str],
                         ignored_names: List[str], offset = 0) -> None:
