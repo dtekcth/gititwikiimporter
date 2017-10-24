@@ -12,24 +12,22 @@ The expected JSON object representing a revision looks like this:
         "content": "The content of the revision encoded as HTML"
     }
 
-and we expect the files to contain a dictionary of string keys and revision values like:
+and we expect the files to contain a list of revision values like:
 
-       {
-        "0":
+       [
             {
                 "diff": int2,
                 "author": "Last author",
                 "comment": "Last comment",
                 "content: "Last revision content"
             },
-        "1":
             {
                 "diff": int1,
                 "author": "First author",
                 "comment": "First comment",
                 "content": "First revision content"
             }
-       }
+       ]
 
 The [WikiPageConverter library](https://github.com/dtekcth/wikipageconverter) contains
 exposed functions for reading files and parsing JSON revision. There are also functions for
