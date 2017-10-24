@@ -74,7 +74,7 @@ def find_diff_markup(session: Session, page: FilePath, diff: str) -> Optional[st
     elements = LH.fromstring(response.content).xpath('//div[@id="wikitext"]')[0].getchildren()
     return "\n".join(str(etree.tostring(el, encoding='unicode', method='html', pretty_print=True)) for el in elements)
 
-def find_revisions(session: Session, file: FilePath) -> List[Revision]:
+def find_revisions(session: Session, file: FilePath) -> Generator[Revision, None, None]:
     """Return the revisions for a page"""
 
     # Finds the metadata about revisions for a page
